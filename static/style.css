@@ -217,7 +217,7 @@ body {
 .search-input::placeholder { color: var(--text-muted); }
 .search-input:focus { border-color: var(--blue); background: rgba(66, 133, 244, 0.05); }
 
-/* Refresh button */
+/* Refresh & Export buttons */
 .btn-refresh {
   display: flex;
   align-items: center;
@@ -237,6 +237,30 @@ body {
 .btn-refresh:hover { transform: translateY(-1px); box-shadow: 0 4px 28px rgba(66, 133, 244, 0.5); }
 .btn-refresh:active { transform: translateY(0); }
 .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-export:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.btn-export:active { transform: translateY(0); }
+.btn-export:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
 .refresh-icon { flex-shrink: 0; transition: var(--transition); }
 .refresh-icon.spinning { animation: spin 0.8s linear infinite; }
 
@@ -420,6 +444,11 @@ body {
   justify-content: space-between;
   gap: 10px;
 }
+.card-footer-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .entry-card.expanded .card-footer { display: flex; }
 
 .btn-source-link {
@@ -452,6 +481,32 @@ body {
   background: rgba(0, 0, 0, 0.8);
   border-color: rgba(255,255,255,0.3);
   transform: translateY(-1px);
+}
+
+.btn-copy-card {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-copy-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+.btn-copy-card.copied {
+  background: rgba(52, 168, 83, 0.15);
+  border-color: rgba(52, 168, 83, 0.4);
+  color: #4fce84;
 }
 
 /* ════════════════════ SKELETONS ════════════════════ */

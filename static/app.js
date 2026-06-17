@@ -62,6 +62,7 @@
 ───────────────────────────────────────────── */
 const refreshBtn      = document.getElementById('refreshBtn');
 const refreshIcon     = document.getElementById('refreshIcon');
+const exportBtn       = document.getElementById('exportBtn');
 const feedList        = document.getElementById('feedList');
 const skeletonList    = document.getElementById('skeletonList');
 const emptyState      = document.getElementById('emptyState');
@@ -206,16 +207,22 @@ function buildCardEl(entry) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           View on cloud.google.com
         </a>
-        <button class="btn-tweet-card" data-entry-id="${encodeURIComponent(entry.id)}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L2.25 2.25H8.08l4.253 5.622 5.912-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
-          Share on X
-        </button>
+        <div class="card-footer-buttons">
+          <button class="btn-copy-card" data-entry-id="${encodeURIComponent(entry.id)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span class="btn-copy-text">Copy note</span>
+          </button>
+          <button class="btn-tweet-card" data-entry-id="${encodeURIComponent(entry.id)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L2.25 2.25H8.08l4.253 5.622 5.912-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+            Share on X
+          </button>
+        </div>
       </div>
     </div>`;
 
   // Toggle expand
   card.addEventListener('click', (e) => {
-    if (e.target.closest('.btn-tweet-card') || e.target.closest('.btn-source-link')) return;
+    if (e.target.closest('.btn-tweet-card') || e.target.closest('.btn-source-link') || e.target.closest('.btn-copy-card')) return;
     card.classList.toggle('expanded');
   });
   card.addEventListener('keydown', (e) => {
@@ -230,6 +237,28 @@ function buildCardEl(entry) {
   tweetBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     openTweetModal(entry);
+  });
+
+  // Copy button
+  const copyBtn = card.querySelector('.btn-copy-card');
+  const copyTextSpan = copyBtn.querySelector('.btn-copy-text');
+  copyBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = entry.content_html;
+    const plainText = (tempDiv.textContent || tempDiv.innerText || '').trim();
+    const copyString = `${entry.title}\n\n${plainText}`;
+    
+    navigator.clipboard.writeText(copyString).then(() => {
+      copyBtn.classList.add('copied');
+      copyTextSpan.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyTextSpan.textContent = 'Copy note';
+      }, 2000);
+    }).catch(err => {
+      console.error('Could not copy text: ', err);
+    });
   });
 
   return card;
@@ -330,6 +359,49 @@ searchInput.addEventListener('input', () => {
    Refresh button
 ───────────────────────────────────────────── */
 refreshBtn.addEventListener('click', loadFeed);
+
+/* ─────────────────────────────────────────────
+   Export CSV button
+───────────────────────────────────────────── */
+exportBtn.addEventListener('click', () => {
+  const filtered = getFilteredEntries();
+  if (!filtered.length) return;
+
+  const headers = ['ID', 'Title/Date', 'Link', 'Types', 'Summary', 'Full Content'];
+  const formatCSVCell = (val) => {
+    if (val === null || val === undefined) return '';
+    let formatted = String(val).replace(/"/g, '""');
+    return `"${formatted}"`;
+  };
+
+  const rows = filtered.map(e => {
+    const types = extractTypes(e.content_html).join(', ');
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = e.content_html;
+    const fullContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+
+    return [
+      e.id,
+      e.title,
+      e.link,
+      types,
+      e.tweet_preview,
+      fullContent
+    ].map(formatCSVCell).join(',');
+  });
+
+  const csvString = [headers.map(formatCSVCell).join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `bigquery_release_notes_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+});
 
 /* ─────────────────────────────────────────────
    Tweet modal
