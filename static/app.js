@@ -63,6 +63,7 @@
 const refreshBtn      = document.getElementById('refreshBtn');
 const refreshIcon     = document.getElementById('refreshIcon');
 const exportBtn       = document.getElementById('exportBtn');
+const themeToggle     = document.getElementById('themeToggle');
 const feedList        = document.getElementById('feedList');
 const skeletonList    = document.getElementById('skeletonList');
 const emptyState      = document.getElementById('emptyState');
@@ -89,6 +90,19 @@ const sourceLink   = document.getElementById('sourceLink');
 let allEntries    = [];
 let activeFilter  = 'all';
 let searchQuery   = '';
+
+/* ─────────────────────────────────────────────
+   Theme toggle (dark ⇔ light)
+───────────────────────────────────────────── */
+(function initTheme() {
+  const saved = localStorage.getItem('bq-theme');
+  if (saved === 'light') document.body.classList.add('light-theme');
+})();
+
+themeToggle.addEventListener('click', () => {
+  const isLight = document.body.classList.toggle('light-theme');
+  localStorage.setItem('bq-theme', isLight ? 'light' : 'dark');
+});
 
 /* ─────────────────────────────────────────────
    Helpers
